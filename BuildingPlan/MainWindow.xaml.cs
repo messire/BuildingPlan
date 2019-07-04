@@ -22,12 +22,6 @@ namespace BuildingPlan
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int _length = 50;
-        private int _shift = 3;
-        private GeometryGenerator _gg;
-        private readonly bool _horizontal = true;
-        private readonly bool _vertical = false;
-        private RectangleGeometry _base;
         private FloorClass _floor;
 
         public MainWindow()
@@ -38,56 +32,14 @@ namespace BuildingPlan
         }
 
         private FloorClass CreateFloor(Point startPoint, int height, int width, int complexity) =>
-            new FloorClass(startPoint, width, height, complexity);
+            new FloorClass(startPoint, height, width, complexity);
 
         private void DrawFloor()
         {
-            InitPhisics();
-            GeometryGroup gg = new GeometryGroup();
-            
-            foreach (Construct construct in _floor)
-            {
-                CombinedGeometry cg = new CombinedGeometry();
-                cg.Geometry1 = _base;
+            var gen = new GeometryGenerator(_floor, startPoint, height, width);
 
-                if (construct.ConstructType == 0)
-                {
-                    var ellipse = new EllipseGeometry
-                    {
-                        Center = construct.Coordinates,
-                        RadiusX = construct.Height,
-                        RadiusY = construct.Width
-                    };
-                    
-                    cg.Geometry2 = ellipse;
-                }
-                else
-                {
-                    var rectangle = new RectangleGeometry
-                    {
-                        Rect = new Rect(construct.Coordinates, new Size(construct.Width, construct.Height))
-                    };
-                    
-                    cg.Geometry2 = rectangle;
-                }
-
-                cg.GeometryCombineMode = construct.CombineMode;
-
-                gg.Children.Add(cg);
-            }
-
-            Path path = new Path
-            {
-                Data = gg,
-                Stroke = Brushes.Gray,
-                StrokeThickness = 1,
-                Fill = Brushes.Gray
-            };
-
-
-            DrawCanvas.Children.Add(path);
+            DrawCanvas.Children.Add(gen.GetDrawPattern());
             //DrawPerimeter(floor);
-
         }
 
         private void InitPhisics()
@@ -98,7 +50,6 @@ namespace BuildingPlan
             var complexity = 3;
 
             _floor = CreateFloor(new Point(center,center), height, width, complexity);
-            _base = new RectangleGeometry(new Rect(center, center, width, height));
         }
 
         private void DrawPerimeter(Block[,] floor)
