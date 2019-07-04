@@ -7,6 +7,18 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Background="#DDFFDD">
+            <Label Content="Count of iterations: " HorizontalAlignment="Left" VerticalAlignment="Top" />
+            <Label x:Name="CountLabel" Content="0" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        </StackPanel>
+        <Canvas x:Name="DrawCanvas" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Background="LightCyan" MouseUp="DrawCanvas_MouseUp"></Canvas>
     </Grid>
 </Window>

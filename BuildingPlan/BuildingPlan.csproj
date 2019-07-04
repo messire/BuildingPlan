@@ -63,6 +63,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\ConstructGenerator.cs" />
+    <Compile Include="Enums\CombineMode.cs" />
+    <Compile Include="Classes\Construct.cs" />
+    <Compile Include="Classes\ConstructEnumerator.cs" />
+    <Compile Include="Enums\ConstructType.cs" />
+    <Compile Include="Classes\FloorClass.cs" />
+    <Compile Include="Classes\GeometryGenerator.cs" />
+    <Compile Include="Enums\SizeType.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
