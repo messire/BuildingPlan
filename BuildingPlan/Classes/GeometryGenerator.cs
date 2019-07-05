@@ -1,54 +1,166 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace BuildingPlan.Classes
 {
+    /// <summary> Генератор этажа </summary>
     public class GeometryGenerator
     {
-        private FloorClass _floor;
+        #region fields
 
-        private Point _startPoint;
-        private int _height;
-        private int _width;
+        private readonly FloorClass _floor;
+        private Construct[] _unions;
+        private Construct[] _excludes;
+        private CombinedGeometry _unionGeometry;
+        private CombinedGeometry _excludeGeometry;
+        private CombinedGeometry _floorGeometry;
+        private GeometryGroup _unionGroup;
+        private GeometryGroup _excludeGroup;
+        private GeometryGroup _floorGeometryGroup;
+        
+        #endregion
 
-        private RectangleGeometry Base => new RectangleGeometry(new Rect(_startPoint.X, _startPoint.Y, _width, _height));
+        #region properties
 
-        public GeometryGenerator(FloorClass floor, Point startPoint, int height, int width)
+        private RectangleGeometry Base => new RectangleGeometry(new Rect(_floor.StartPoint.X, _floor.StartPoint.Y, _floor.Width, _floor.Height));
+
+        #endregion
+        
+        #region Constructor
+
+        public GeometryGenerator(FloorClass floor)
         {
             _floor = floor;
-            _startPoint = startPoint;
-            _height = height;
-            _width = width;
+            _unions = new Construct[_floor.UnionCount];
+            _excludes = new Construct[_floor.ExcludeCount];
+            _unionGeometry = new CombinedGeometry();
+            _excludeGeometry = new CombinedGeometry();
+            _floorGeometry = new CombinedGeometry();
+            _unionGroup = new GeometryGroup();
+            _excludeGroup = new GeometryGroup();
+            _floorGeometryGroup = new GeometryGroup();
+
+            _floorGeometry.Geometry1 = Base;
         }
 
+        #endregion
+
+        #region public methods
+
+        /// <summary> Получить паттерн отрисовки </summary>
+        /// <returns></returns>
         public Path GetDrawPattern()
         {
             Path path = AssambleDrawPath();
             return path;
         }
 
-        public bool SetHeight(int height)
-        {
-            if (height < 0) return false;
+        /// <summary> Сеттер длинны этажа </summary>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public bool SetHeight(int height) => _floor != null && _floor.SetHeight(height);
 
-            _height = height;
-            return true;
+        /// <summary> Сеттер ширины этажа </summary>
+        /// <param name="width"></param>
+        /// <returns></returns>
+        public bool SetWidth(int width) => _floor != null && _floor.SetWidth(width);
+
+        #endregion
+
+        #region private methods
+
+        /// <summary> Сборка отрисовки </summary>
+        /// <returns></returns>
+        private Path AssambleDrawPath()
+        {
+            AssembleFloor();
+
+            return new Path
+            {
+                Data = _floorGeometryGroup,
+                Fill = Brushes.Gray
+            };
         }
 
-        public bool SetWidth(int width)
+        /// <summary> Собрать конструкты в одну форму </summary>
+        /// <returns></returns>
+        private void AssembleFloor()
         {
-            if (width < 0) return false;
+            SortConstructs();
 
-            _height = width;
-            return true;
+            _excludeGeometry = CombineGeometries(_excludes, _excludeGeometry);
+            _unionGeometry = CombineGeometries(_unions, _unionGeometry);
+            
+            CombineGeometryFloor(_floorGeometry, _excludeGeometry, GeometryCombineMode.Exclude);
+            CombineGeometryFloor(_floorGeometry, _unionGeometry, GeometryCombineMode.Union);
+
+            _floorGeometryGroup.Children.Add(_floorGeometry);
         }
 
+        /// <summary> Сортировка конструктов </summary>
+        private void SortConstructs()
+        {
+            foreach (Construct construct in _floor)
+            {
+                if (construct.CombineMode == GeometryCombineMode.Union)
+                {
+                    _unions[_unions.Count(e => e != null)] = construct;
+                }
+                else
+                {
+                    _excludes[_excludes.Count(e => e != null)] = construct;
+                }
+            }
+        }
+
+        /// <summary> Сборка схожих конструктов в одну форму </summary>
+        /// <param name="constructArray"></param>
+        /// <param name="combined"></param>
+        /// <returns></returns>
+        private CombinedGeometry CombineGeometries(Construct[] constructArray, CombinedGeometry combined)
+        {
+            if (constructArray.Length > 0)
+            {
+                foreach (Construct construct in constructArray)
+                {
+                    combined = new CombinedGeometry
+                    {
+                        Geometry1 = combined,
+                        Geometry2 = GetGeometry(construct),
+                        GeometryCombineMode = GeometryCombineMode.Union
+                    };
+                }
+            }
+
+            return combined;
+        }
+
+        /// <summary> Привязка формы к базовой площадке </summary>
+        /// <param name="geometry1"></param>
+        /// <param name="geometry2"></param>
+        /// <param name="combineMode"></param>
+        private void CombineGeometryFloor(CombinedGeometry geometry1, CombinedGeometry geometry2, GeometryCombineMode combineMode)
+        {
+            _floorGeometry = new CombinedGeometry
+            {
+                Geometry1 = geometry1,
+                Geometry2 = geometry2,
+                GeometryCombineMode = combineMode
+            };
+        }
+
+        #endregion
+        
+        #region Helpers
+
+        private Geometry GetGeometry(Construct construct) => 
+            construct.ConstructType == 0 ? (Geometry) CreateEllipse(construct) : CreateRectangle(construct);
+
+        /// <summary> Генерация геометрии эллипса </summary>
+        /// <param name="construct"></param>
+        /// <returns></returns>
         private EllipseGeometry CreateEllipse(Construct construct)
         {
             return new EllipseGeometry
@@ -59,36 +171,14 @@ namespace BuildingPlan.Classes
             };
         }
 
+        /// <summary> Генерация геометрии прямоугольника </summary>
+        /// <param name="construct"></param>
+        /// <returns></returns>
         private RectangleGeometry CreateRectangle(Construct construct)
         {
-            return new RectangleGeometry {Rect = new Rect(construct.Coordinates, new Size(construct.Width, construct.Height))};
+            return new RectangleGeometry { Rect = new Rect(construct.Coordinates, construct.Size) };
         }
 
-        private GeometryGroup AssembleFloor()
-        {
-            GeometryGroup floorGeometryGroup = new GeometryGroup();
-
-            foreach (Construct construct in _floor)
-            {
-                CombinedGeometry cg = new CombinedGeometry
-                {
-                    Geometry1 = Base,
-                    Geometry2 = construct.ConstructType == 0 ? (Geometry)CreateEllipse(construct) : CreateRectangle(construct),
-                    GeometryCombineMode = construct.CombineMode
-                };
-                floorGeometryGroup.Children.Add(cg);
-            }
-
-            return floorGeometryGroup;
-        }
-
-        private Path AssambleDrawPath()
-        {
-            return new Path
-            {
-                Data = AssembleFloor(),
-                Fill = Brushes.Gray
-            };
-        }
+        #endregion
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 
 namespace BuildingPlan.Classes
 {
+    /// <summary> Enumerator класса Construct </summary>
     public class ConstructEnumerator : IEnumerator
     {
         #region fields
@@ -14,11 +15,8 @@ namespace BuildingPlan.Classes
 
         #region Constructor
 
-        public ConstructEnumerator(Construct[] elements)
-        {
-            _elements = elements;
-        }
-
+        public ConstructEnumerator(Construct[] elements) => _elements = elements;
+        
         #endregion
 
         #region Interface Implementation

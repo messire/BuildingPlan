@@ -5,20 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BuildingPlan"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="223*"/>
+            <ColumnDefinition Width="41*"/>
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="26" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Background="#DDFFDD">
-            <Label Content="Count of iterations: " HorizontalAlignment="Left" VerticalAlignment="Top" />
-            <Label x:Name="CountLabel" Content="0" HorizontalAlignment="Left" VerticalAlignment="Top" />
-        </StackPanel>
-        <Canvas x:Name="DrawCanvas" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Background="LightCyan" MouseUp="DrawCanvas_MouseUp"></Canvas>
+        <Canvas x:Name="DrawCanvas" Background="LightCyan" MouseUp="DrawCanvas_MouseUp" Grid.ColumnSpan="2"></Canvas>
     </Grid>
 </Window>
